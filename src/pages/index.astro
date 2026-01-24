@@ -1,0 +1,133 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<BaseLayout 
+  title="RAE Partners" 
+  description="Responsible Autonomous Engineering. We help organizations deploy AI coding agents reliably and hold them accountable to high-quality outcomes."
+>
+  <Nav />
+  
+  <main class="pt-24">
+    <!-- Hero Section -->
+    <section class="max-w-4xl mx-auto px-6 py-20 md:py-32">
+      <div class="text-center">
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground mb-6">
+          Responsible Autonomous Engineering
+        </h1>
+        <p class="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
+          We help organizations deploy AI coding agents reliably and hold them accountable to high-quality outcomes.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a 
+            href="mailto:hello@rae.partners" 
+            class="inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Get in touch
+          </a>
+          <a 
+            href="/blog" 
+            class="inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-md border border-border bg-background hover:bg-muted transition-colors"
+          >
+            Read our thinking
+          </a>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Brief Intro Section -->
+    <section class="bg-muted/30 border-y border-border">
+      <div class="max-w-4xl mx-auto px-6 py-20">
+        <div class="max-w-2xl mx-auto text-center">
+          <h2 class="text-2xl md:text-3xl font-semibold text-foreground mb-6">
+            The robots are ready. Are you?
+          </h2>
+          <p class="text-lg text-muted-foreground leading-relaxed mb-6">
+            2026 is the year hands-off, eyes-off autonomous engineering becomes possible for mature organizations. But only for those who learn how to hold agentic coding tools and their operators accountable to high-quality outcomes.
+          </p>
+          <p class="text-lg text-muted-foreground leading-relaxed">
+            We&apos;ve spent years figuring out how to manage dozens of AI coding agents working simultaneously, reliably producing software that exceeds product and engineering expectations. Our battle-hardened tools and practices are finally ready to share.
+          </p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- What We Believe Section -->
+    <section class="max-w-4xl mx-auto px-6 py-20">
+      <div class="max-w-2xl mx-auto">
+        <h2 class="text-2xl md:text-3xl font-semibold text-foreground mb-8 text-center">
+          What unlocks autonomous engineering
+        </h2>
+        <div class="grid gap-6">
+          <div class="flex items-start gap-4">
+            <div class="w-2 h-2 rounded-full bg-accent mt-2.5 shrink-0"></div>
+            <div>
+              <h3 class="font-medium text-foreground">Thoroughly-documented code</h3>
+              <p class="text-muted-foreground">Agents need context to make good decisions.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-2 h-2 rounded-full bg-accent mt-2.5 shrink-0"></div>
+            <div>
+              <h3 class="font-medium text-foreground">Comprehensive automated tests</h3>
+              <p class="text-muted-foreground">The only reliable way to verify agent output at scale.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-2 h-2 rounded-full bg-accent mt-2.5 shrink-0"></div>
+            <div>
+              <h3 class="font-medium text-foreground">Well-supported modern frameworks</h3>
+              <p class="text-muted-foreground">Agents work best with patterns in their training data.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-2 h-2 rounded-full bg-accent mt-2.5 shrink-0"></div>
+            <div>
+              <h3 class="font-medium text-foreground">Rigorously-researched technical specifications</h3>
+              <p class="text-muted-foreground">Clear requirements prevent agents from spinning.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-2 h-2 rounded-full bg-accent mt-2.5 shrink-0"></div>
+            <div>
+              <h3 class="font-medium text-foreground">Production-equivalent development environments</h3>
+              <p class="text-muted-foreground">Reduce the gap between agent output and production reality.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <div class="w-2 h-2 rounded-full bg-accent mt-2.5 shrink-0"></div>
+            <div>
+              <h3 class="font-medium text-foreground">Infrastructure as Code</h3>
+              <p class="text-muted-foreground">Reproducible environments agents can understand and modify.</p>
+            </div>
+          </div>
+        </div>
+        <p class="mt-8 text-center text-muted-foreground">
+          The good news? Agentic coding tools, paired with well-trained architects, can bootstrap these best practices in weeks, not years.
+        </p>
+      </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="bg-primary/5 border-y border-border">
+      <div class="max-w-4xl mx-auto px-6 py-20 text-center">
+        <h2 class="text-2xl md:text-3xl font-semibold text-foreground mb-4">
+          Ready to build software better and faster?
+        </h2>
+        <p class="text-lg text-muted-foreground mb-8 max-w-xl mx-auto">
+          Whether you want to deploy autonomous engineering or help us build the tools, we&apos;d love to partner with you.
+        </p>
+        <a 
+          href="mailto:hello@rae.partners" 
+          class="inline-flex items-center justify-center px-8 py-4 text-lg font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          Let&apos;s talk
+        </a>
+      </div>
+    </section>
+  </main>
+  
+  <Footer />
+</BaseLayout>

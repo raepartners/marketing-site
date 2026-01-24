@@ -1,0 +1,39 @@
+---
+const navLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/blog', label: 'Blog' },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<nav class="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
+  <div class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+      <img src="/images/rae-logo.svg" alt="RAE Partners" class="h-10 w-auto" />
+      <span class="font-semibold text-foreground">RAE Partners</span>
+    </a>
+    
+    <div class="flex items-center gap-6">
+      {navLinks.map((link) => (
+        <a
+          href={link.href}
+          class:list={[
+            'text-sm font-medium transition-colors hover:text-primary',
+            currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href))
+              ? 'text-primary'
+              : 'text-muted-foreground'
+          ]}
+        >
+          {link.label}
+        </a>
+      ))}
+      <a
+        href="mailto:hello@rae.partners"
+        class="text-sm font-medium px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+      >
+        Contact
+      </a>
+    </div>
+  </div>
+</nav>

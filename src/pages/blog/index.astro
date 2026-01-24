@@ -1,0 +1,83 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const sortedPosts = allPosts.sort((a, b) => 
+  b.data.publishedDate.valueOf() - a.data.publishedDate.valueOf()
+);
+
+const formatDate = (date: Date) => {
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+---
+
+<BaseLayout 
+  title="Blog" 
+  description="Thoughts on autonomous engineering, AI coding agents, and building reliable software at scale."
+>
+  <Nav />
+  
+  <main class="pt-24">
+    <section class="max-w-4xl mx-auto px-6 py-12">
+      <header class="mb-12">
+        <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-4">
+          Blog
+        </h1>
+        <p class="text-lg text-muted-foreground">
+          Thoughts on autonomous engineering, AI coding agents, and building reliable software at scale.
+        </p>
+      </header>
+      
+      <div class="space-y-8">
+        {sortedPosts.map((post) => (
+          <article class="group">
+            <a href={`/blog/${post.id}`} class="block">
+              <div class="p-6 -mx-6 rounded-lg hover:bg-muted/50 transition-colors">
+                <div class="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                  <time datetime={post.data.publishedDate.toISOString()}>
+                    {formatDate(post.data.publishedDate)}
+                  </time>
+                  {post.data.featured && (
+                    <>
+                      <span>•</span>
+                      <span class="text-primary font-medium">Featured</span>
+                    </>
+                  )}
+                </div>
+                <h2 class="text-xl font-semibold text-foreground group-hover:text-primary transition-colors mb-2">
+                  {post.data.title}
+                </h2>
+                <p class="text-muted-foreground">
+                  {post.data.description}
+                </p>
+                <div class="mt-3 flex items-center gap-2 text-sm">
+                  <span class="text-muted-foreground">By {post.data.author.name}</span>
+                  {post.data.coAuthors && post.data.coAuthors.length > 0 && (
+                    <span class="text-muted-foreground">
+                      and {post.data.coAuthors.map(a => a.name).join(', ')}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </a>
+          </article>
+        ))}
+      </div>
+      
+      {sortedPosts.length === 0 && (
+        <p class="text-center text-muted-foreground py-12">
+          No posts yet. Check back soon!
+        </p>
+      )}
+    </section>
+  </main>
+  
+  <Footer />
+</BaseLayout>

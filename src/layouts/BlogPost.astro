@@ -1,0 +1,149 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  publishedDate: Date;
+  modifiedDate?: Date;
+  author: {
+    name: string;
+    email?: string;
+    role?: string;
+  };
+  coAuthors?: Array<{
+    name: string;
+    email?: string;
+    role?: string;
+  }>;
+  tags?: string[];
+}
+
+const { 
+  title, 
+  description, 
+  publishedDate, 
+  modifiedDate,
+  author,
+  coAuthors,
+  tags,
+} = Astro.props;
+
+const formatDate = (date: Date) => {
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
+const allAuthors = [author, ...(coAuthors || [])];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  ogType="article"
+  publishedTime={publishedDate.toISOString()}
+  modifiedTime={modifiedDate?.toISOString()}
+>
+  <Nav />
+  
+  <main class="pt-24">
+    <article class="max-w-3xl mx-auto px-6 py-12">
+      <!-- Header -->
+      <header class="mb-12">
+        <div class="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+          <a href="/blog" class="hover:text-foreground transition-colors">Blog</a>
+          <span>/</span>
+          <time datetime={publishedDate.toISOString()}>
+            {formatDate(publishedDate)}
+          </time>
+          {modifiedDate && modifiedDate > publishedDate && (
+            <>
+              <span class="text-muted-foreground/50">•</span>
+              <span>Updated {formatDate(modifiedDate)}</span>
+            </>
+          )}
+        </div>
+        
+        <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-foreground mb-6">
+          {title}
+        </h1>
+        
+        <p class="text-xl text-muted-foreground leading-relaxed mb-6">
+          {description}
+        </p>
+        
+        <div class="flex flex-wrap items-center gap-4 text-sm">
+          {allAuthors.map((a, i) => (
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
+                {a.name.charAt(0)}
+              </div>
+              <div>
+                <div class="font-medium text-foreground">{a.name}</div>
+                {a.role && <div class="text-muted-foreground text-xs">{a.role}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {tags && tags.length > 0 && (
+          <div class="flex flex-wrap gap-2 mt-6">
+            {tags.map((tag) => (
+              <span class="px-3 py-1 text-xs font-medium rounded-full bg-muted text-muted-foreground">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </header>
+      
+      <!-- Content -->
+      <div class="prose prose-lg max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-blockquote:border-l-primary prose-blockquote:not-italic prose-blockquote:text-muted-foreground">
+        <slot />
+      </div>
+      
+      <!-- Footer -->
+      <footer class="mt-16 pt-8 border-t border-border">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <p class="text-sm text-muted-foreground">
+              Questions or thoughts? Reach out to us.
+            </p>
+          </div>
+          <a 
+            href="mailto:hello@rae.partners" 
+            class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Get in touch
+          </a>
+        </div>
+      </footer>
+    </article>
+  </main>
+  
+  <Footer />
+</BaseLayout>
+
+<style is:global>
+  /* Prose typography customizations */
+  .prose {
+    --tw-prose-body: var(--foreground);
+    --tw-prose-headings: var(--foreground);
+    --tw-prose-links: var(--primary);
+    --tw-prose-bold: var(--foreground);
+    --tw-prose-counters: var(--muted-foreground);
+    --tw-prose-bullets: var(--accent);
+    --tw-prose-hr: var(--border);
+    --tw-prose-quotes: var(--muted-foreground);
+    --tw-prose-quote-borders: var(--primary);
+    --tw-prose-captions: var(--muted-foreground);
+    --tw-prose-code: var(--foreground);
+    --tw-prose-pre-code: var(--foreground);
+    --tw-prose-pre-bg: var(--muted);
+  }
+</style>
