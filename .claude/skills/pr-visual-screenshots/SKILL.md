@@ -5,7 +5,7 @@ description: Use when opening a PR that includes visual changes to pages or comp
 
 # PR Visual Screenshots
 
-Visual changes require screenshot evidence in PRs.
+Visual changes REQUIRE screenshot evidence in PRs. No exceptions.
 
 ## Requirements
 
@@ -20,26 +20,45 @@ Use the **smallest number of screenshots** that satisfies all criteria.
 
 ## Minimum Screenshots
 
-For N pages changed, you need exactly N screenshots. Distribute modes/viewports across them:
+For N pages changed, exactly N screenshots. Distribute modes/viewports:
 
-| Pages | Example Distribution |
-|-------|---------------------|
-| 1 page | Need 2 min: one light, one dark (or one desktop, one mobile) |
+| Pages | Distribution |
+|-------|-------------|
+| 1 page | 2 min: one desktop-light, one mobile-dark |
 | 2 pages | page1: desktop-light, page2: mobile-dark |
 | 3 pages | page1: desktop-light, page2: mobile-dark, page3: desktop-dark |
 
-## Process
+## Required Process
 
-1. Capture screenshots to `pr-screenshots/` (gitignored)
-2. Create PR
-3. Drag-drop screenshots into PR body on GitHub (uploads as attachments)
+**You MUST follow these steps:**
+
+1. **Capture screenshots** using Playwright:
+   ```typescript
+   const context = await browser.newContext({
+     viewport: { width: 1280, height: 800 },  // or 375x812 for mobile
+     colorScheme: 'light',  // or 'dark'
+   });
+   await page.screenshot({ path: 'pr-screenshots/name.png', fullPage: true });
+   ```
+
+2. **Commit screenshots to branch** (force-add past gitignore):
+   ```bash
+   git add -f pr-screenshots/
+   git commit -m "Add PR screenshots for review"
+   git push
+   ```
+
+3. **Include in PR body** using raw GitHub URLs:
+   ```markdown
+   ## Screenshots
+   ### Page Name (Viewport, Theme)
+   ![alt](https://raw.githubusercontent.com/{owner}/{repo}/{branch}/pr-screenshots/{name}.png)
+   ```
 
 ## What Counts as Visual Changes
 
-- Component styling, layout changes, new UI components
-- Theme/color modifications, typography changes
-- Responsive design changes
+Component styling, layout, new UI, theme/color, typography, responsive design
 
 ## What Does NOT Require Screenshots
 
-- Backend/API, test-only, documentation-only changes
+Backend/API, test-only, documentation-only, config-only changes
