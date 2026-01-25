@@ -2,6 +2,19 @@
 
 Astro 5 static marketing site for RAE Partners.
 
+## Project Skills
+
+- `kb-record-research-decisions` — Use before committing. Evaluates whether research/decisions should persist to the shared rae-mgmt brain.
+
+## Shared Knowledge Base
+
+Research and decisions that affect RAE broadly should persist to rae-mgmt:
+- **Path:** `/Users/trippwickersham/conductor/workspaces/rae-mgmt/{worktree}/`
+- **Marketing research:** `areas/marketing/research/`
+- **Decisions:** `areas/{area}/decisions/`
+
+Find active worktrees: `cd /Users/trippwickersham/Code/rae-mgmt && git worktree list`
+
 ## Stack
 
 - **Framework:** Astro 5 (static output)
