@@ -30,3 +30,10 @@ pnpm-debug.log*
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Claude Code (keep skills tracked)
+.claude/*
+!.claude/skills/
+
+# Research notes
+research/

@@ -57,10 +57,10 @@ test.describe('SEO Tests', () => {
       });
 
       test('has exactly one H1', async ({ page }) => {
-        // Count H1s only in the main document body, excluding any debug overlays
-        const h1Count = await page.locator('body > *:not([class*="playwright"]) h1, body > main h1, body > article h1').count();
-        // Should have at least one H1
-        expect(h1Count).toBeGreaterThanOrEqual(1);
+        // Count all H1s in the document
+        const h1Count = await page.locator('h1').count();
+        // SEO best practice: exactly one H1 per page
+        expect(h1Count).toBe(1);
       });
 
       test('has JSON-LD structured data', async ({ page }) => {
