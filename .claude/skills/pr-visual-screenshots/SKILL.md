@@ -5,67 +5,41 @@ description: Use when opening a PR that includes visual changes to pages or comp
 
 # PR Visual Screenshots
 
-## Overview
-
-Visual changes require screenshot evidence in PRs. Screenshots prove changes work across themes and viewports.
+Visual changes require screenshot evidence in PRs.
 
 ## Requirements
 
-For PRs with visual changes, include screenshots covering:
+The screenshot set must collectively:
+1. Show **every page/component changed** (one screenshot per change)
+2. Include **at least one light mode** screenshot
+3. Include **at least one dark mode** screenshot
+4. Include **at least one desktop** (1280px) screenshot
+5. Include **at least one mobile** (375px) screenshot
 
-1. **Each page/component changed** - one set per distinct visual change
-2. **Both themes** - light mode AND dark mode
-3. **Both viewports** - desktop (1280px) AND mobile (375px)
+Use the **smallest number of screenshots** that satisfies all criteria.
 
-## Screenshot Matrix
+## Minimum Screenshots
 
-For N pages with visual changes, include **4N screenshots**:
+For N pages changed, you need exactly N screenshots. Distribute modes/viewports across them:
 
-| Page | Theme | Viewport | Filename |
-|------|-------|----------|----------|
-| page-name | light | desktop | `page-name-desktop-light.png` |
-| page-name | light | mobile | `page-name-mobile-light.png` |
-| page-name | dark | desktop | `page-name-desktop-dark.png` |
-| page-name | dark | mobile | `page-name-mobile-dark.png` |
+| Pages | Example Distribution |
+|-------|---------------------|
+| 1 page | Need 2 min: one light, one dark (or one desktop, one mobile) |
+| 2 pages | page1: desktop-light, page2: mobile-dark |
+| 3 pages | page1: desktop-light, page2: mobile-dark, page3: desktop-dark |
 
-## Capturing Screenshots
+## Process
 
-Use Playwright with `colorScheme` and `viewport`:
-
-```typescript
-const context = await browser.newContext({
-  viewport: { width: 1280, height: 800 },  // or 375x812 for mobile
-  colorScheme: 'light',  // or 'dark'
-});
-await page.screenshot({ path: 'filename.png', fullPage: true });
-```
-
-## PR Body Format
-
-Include screenshots in the PR description under a `## Screenshots` section:
-
-```markdown
-## Screenshots
-
-### Homepage
-| Light | Dark |
-|-------|------|
-| Desktop: ![](screenshots/homepage-desktop-light.png) | Desktop: ![](screenshots/homepage-desktop-dark.png) |
-| Mobile: ![](screenshots/homepage-mobile-light.png) | Mobile: ![](screenshots/homepage-mobile-dark.png) |
-```
+1. Capture screenshots to `pr-screenshots/` (gitignored)
+2. Create PR
+3. Drag-drop screenshots into PR body on GitHub (uploads as attachments)
 
 ## What Counts as Visual Changes
 
-- Component styling (CSS, Tailwind classes)
-- Layout changes
-- New UI components
-- Theme/color modifications
-- Typography changes
+- Component styling, layout changes, new UI components
+- Theme/color modifications, typography changes
 - Responsive design changes
 
 ## What Does NOT Require Screenshots
 
-- Backend/API changes
-- Test-only changes
-- Documentation-only changes
-- Config file changes with no visual impact
+- Backend/API, test-only, documentation-only changes
