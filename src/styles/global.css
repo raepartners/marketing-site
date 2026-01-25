@@ -42,6 +42,15 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Sunrise palette - for hero and illustrations */
+  --color-sunrise-horizon: var(--sunrise-horizon);
+  --color-sunrise-corona: var(--sunrise-corona);
+  --color-sunrise-sky-mid: var(--sunrise-sky-mid);
+  --color-sunrise-sky-upper: var(--sunrise-sky-upper);
+  --color-sunrise-hills-near: var(--sunrise-hills-near);
+  --color-sunrise-hills-far: var(--sunrise-hills-far);
+  --color-sunrise-silhouette: var(--sunrise-silhouette);
 }
 
 /* Solarpunk Theme - RAE Partners */
@@ -99,6 +108,15 @@
   --sidebar-accent-foreground: oklch(0.3 0.02 50);
   --sidebar-border: oklch(0.88 0.015 85);
   --sidebar-ring: oklch(0.55 0.16 75);
+
+  /* Sunrise palette - for hero illustration */
+  --sunrise-horizon: oklch(0.80 0.18 80);    /* Rich warm gold */
+  --sunrise-corona: oklch(0.70 0.20 75);     /* Saturated solar gold */
+  --sunrise-sky-mid: oklch(0.75 0.12 280);   /* Visible lavender */
+  --sunrise-sky-upper: oklch(0.85 0.08 220); /* Clear sky blue */
+  --sunrise-hills-near: oklch(0.60 0.10 160);/* Verdant green */
+  --sunrise-hills-far: oklch(0.70 0.08 160); /* Lighter green */
+  --sunrise-silhouette: oklch(0.35 0.08 160);/* Dark green depth */
 }
 
 .dark {
@@ -145,6 +163,15 @@
   --sidebar-accent-foreground: oklch(0.95 0.008 85);
   --sidebar-border: oklch(0.32 0.015 50);
   --sidebar-ring: oklch(0.75 0.18 80);
+
+  /* Sunrise palette - golden hour/pre-dawn for dark mode */
+  --sunrise-horizon: oklch(0.65 0.15 80);    /* Richer gold */
+  --sunrise-corona: oklch(0.55 0.18 75);     /* Deeper gold */
+  --sunrise-sky-mid: oklch(0.35 0.06 280);   /* Deep lavender */
+  --sunrise-sky-upper: oklch(0.25 0.04 260); /* Deep twilight blue */
+  --sunrise-hills-near: oklch(0.30 0.08 160);/* Dark silhouette */
+  --sunrise-hills-far: oklch(0.35 0.06 160); /* Slightly lighter */
+  --sunrise-silhouette: oklch(0.20 0.06 160);/* Deep shadow */
 }
 
 @layer base {
