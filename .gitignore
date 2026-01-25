@@ -37,3 +37,6 @@ pnpm-debug.log*
 
 # Research notes
 research/
+
+# PR screenshots (uploaded as attachments, not committed)
+pr-screenshots/
