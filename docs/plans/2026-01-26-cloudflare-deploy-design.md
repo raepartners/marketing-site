@@ -1,7 +1,7 @@
 # Cloudflare Pages Deployment & Local Dev Fix
 
 **Date:** 2026-01-26
-**Status:** Approved
+**Status:** Implemented
 
 ## Problem
 
@@ -15,16 +15,16 @@
 ```
 GitHub repo (raepartners/marketing-site)
            │
-           ├── Push to main ──────────► Cloudflare Pages ──► rae.partners (production)
+           ├── Push to main ──────────► GitHub Actions ──► Cloudflare Pages ──► rae.partners
            │
-           └── Open/update PR ────────► Cloudflare Pages ──► {branch}.rae-mktg.pages.dev (preview)
+           └── Open/update PR ────────► GitHub Actions ──► Cloudflare Pages ──► {branch}.rae-mktg.pages.dev
 ```
 
 ### 1. Fix Absolute Paths
 
 Replace hardcoded paths with `$RAE_MGMT_PATH` environment variable.
 
-**Files to modify:**
+**Files modified:**
 - `.claude/skills/kb-record-research-decisions/skill.md`
 - `CLAUDE.md`
 
@@ -35,52 +35,74 @@ export RAE_MGMT_PATH="$HOME/path/to/rae-mgmt"
 
 ### 2. Cloudflare Pages Configuration
 
-Add `wrangler.toml`:
+**wrangler.toml** (project metadata only — build handled by GitHub Actions):
 ```toml
 name = "rae-mktg"
 pages_build_output_dir = "dist"
-
-[build]
-command = "pnpm install && pnpm build"
-
-[build.environment]
-NODE_VERSION = "20"
 ```
+
+Note: The `[build]` section is not supported for Pages projects in wrangler.toml.
+Build commands are configured in GitHub Actions workflow.
 
 **Project name:** `rae-mktg`
 **URLs:**
 - Production: `rae.partners` (custom domain)
 - Previews: `{branch}.rae-mktg.pages.dev`
 
-### 3. DNS Setup
+### 3. GitHub Actions Deployment
+
+The CI workflow (`.github/workflows/ci.yml`) handles deployment:
+1. `build-and-test` job: builds site, runs tests, uploads `dist/` as artifact
+2. `deploy` job: downloads artifact, deploys to Cloudflare Pages via wrangler
+
+Benefits over native Cloudflare Git integration:
+- Full control over build process
+- Tests must pass before deploy
+- Artifact sharing eliminates duplicate builds
+
+### 4. DNS Setup
 
 CNAME record in Cloudflare DNS:
 | Type | Name | Target |
 |------|------|--------|
 | CNAME | `@` | `rae-mktg.pages.dev` |
 
-## Cloudflare Setup (One-Time)
+## One-Time Setup Steps
 
-### Step 1: Create Pages Project
+### Step 1: Create Cloudflare API Token
 
-1. Go to [dash.cloudflare.com](https://dash.cloudflare.com) → Workers & Pages → Create
-2. Select "Pages" tab → "Connect to Git"
-3. Authorize GitHub if needed, select `raepartners/marketing-site`
-4. Configure build:
-   - **Project name:** `rae-mktg`
-   - **Production branch:** `main`
-   - **Build command:** `pnpm install && pnpm build` (auto-detected from wrangler.toml)
-   - **Build output directory:** `dist`
-5. Click "Save and Deploy"
+1. Go to [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens)
+2. Click "Create Token"
+3. Use template: **"Edit Cloudflare Workers"** (includes Pages permissions)
+4. Add permission: **Zone → DNS → Edit** (for custom domain)
+5. Restrict to your account and `rae.partners` zone
+6. Create and copy the token
 
-### Step 2: Add Custom Domain
+### Step 2: Add GitHub Secrets
 
-1. In the Pages project → Custom domains → Add custom domain
-2. Enter `rae.partners`
-3. Cloudflare auto-configures DNS (since domain is already on Cloudflare)
-4. Wait ~1 min for SSL certificate
+1. Go to [GitHub repo secrets](https://github.com/raepartners/marketing-site/settings/secrets/actions)
+2. Add these repository secrets:
 
-### Step 3: Verify
+| Secret Name | Value |
+|-------------|-------|
+| `CLOUDFLARE_API_TOKEN` | (token from Step 1) |
+| `CLOUDFLARE_ACCOUNT_ID` | (from Cloudflare dashboard URL or account settings) |
+
+### Step 3: Create Pages Project
+
+Via Wrangler CLI (or Cloudflare dashboard):
+```bash
+npx wrangler pages project create rae-mktg --production-branch=main
+```
+
+### Step 4: Add Custom Domain
+
+Via API or dashboard:
+1. In Pages project → Custom domains → Add `rae.partners`
+2. Cloudflare auto-configures DNS (domain already on Cloudflare)
+3. SSL certificate provisions automatically (~1 min)
+
+### Step 5: Verify
 
 - Push to `main` → deploys to `rae.partners`
 - Open PR → preview at `{branch}.rae-mktg.pages.dev`
