@@ -93,8 +93,9 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const output = `${{ steps.deploy.outputs.deployment-url }}`;
-            const previewUrl = output || `https://${{ github.head_ref }}.rae-mktg.pages.dev`.replace(/[^a-z0-9-./]/gi, '-').toLowerCase();
+            // Use branch alias URL (stable) instead of deployment URL (random ID)
+            const branch = '${{ github.head_ref }}'.replace(/[^a-z0-9-]/gi, '-').toLowerCase();
+            const previewUrl = `https://${branch}.rae-mktg.pages.dev`;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
