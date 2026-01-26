@@ -6,13 +6,21 @@ Astro 5 static marketing site for RAE Partners.
 
 - `kb-record-research-decisions` — Use before committing. Evaluates whether research/decisions should persist to the shared rae-mgmt brain.
 
+## Developer Setup
+
+Set the path to your rae-mgmt repo (add to `~/.zshrc` or `~/.bashrc`):
+```bash
+export RAE_MGMT_PATH="$HOME/path/to/rae-mgmt"
+```
+
 ## Shared Knowledge Base
 
 Research and decisions that affect RAE broadly should persist to rae-mgmt:
+- **Path:** `$RAE_MGMT_PATH`
 - **Marketing research:** `areas/marketing/research/`
 - **Decisions:** `areas/{area}/decisions/`
 
-Find rae-mgmt location: `git config --global --get rae.mgmt-path` or check `~/Code/rae-mgmt`
+Find active worktrees: `cd $RAE_MGMT_PATH && git worktree list`
 
 ## Stack
 
@@ -141,10 +149,11 @@ pnpm test -- --grep "smoke"  # Run specific tests
 
 ## Deployment
 
-Currently not deployed. When ready:
-1. Connect to Cloudflare Pages
-2. Build command: `pnpm build`
-3. Output directory: `dist`
+Hosted on Cloudflare Pages (`rae-mktg` project):
+- **Production:** `rae.partners` (merges to main)
+- **PR Previews:** `{branch}.rae-mktg.pages.dev`
+
+Configuration in `wrangler.toml`. Build: `pnpm build`, output: `dist/`
 
 ## Important Notes
 
