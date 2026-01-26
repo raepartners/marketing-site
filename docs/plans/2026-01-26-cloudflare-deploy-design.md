@@ -59,12 +59,32 @@ CNAME record in Cloudflare DNS:
 |------|------|--------|
 | CNAME | `@` | `rae-mktg.pages.dev` |
 
-## Manual Steps (Cloudflare Dashboard)
+## Cloudflare Setup (One-Time)
 
-1. Create Pages project connected to `raepartners/marketing-site`
-2. Set project name to `rae-mktg`
-3. Add CNAME record for `rae.partners`
-4. Add custom domain in Pages project settings
+### Step 1: Create Pages Project
+
+1. Go to [dash.cloudflare.com](https://dash.cloudflare.com) → Workers & Pages → Create
+2. Select "Pages" tab → "Connect to Git"
+3. Authorize GitHub if needed, select `raepartners/marketing-site`
+4. Configure build:
+   - **Project name:** `rae-mktg`
+   - **Production branch:** `main`
+   - **Build command:** `pnpm install && pnpm build` (auto-detected from wrangler.toml)
+   - **Build output directory:** `dist`
+5. Click "Save and Deploy"
+
+### Step 2: Add Custom Domain
+
+1. In the Pages project → Custom domains → Add custom domain
+2. Enter `rae.partners`
+3. Cloudflare auto-configures DNS (since domain is already on Cloudflare)
+4. Wait ~1 min for SSL certificate
+
+### Step 3: Verify
+
+- Push to `main` → deploys to `rae.partners`
+- Open PR → preview at `{branch}.rae-mktg.pages.dev`
+- PR gets automatic comment with preview URL
 
 ## Cost
 
