@@ -33,12 +33,15 @@ When uncertain, ask the user.
 
 ## Where to Write
 
-**rae-mgmt location:** Find active worktree via:
+**rae-mgmt location:** Find via git config or common locations:
 ```bash
-cd $RAE_MGMT_PATH && git worktree list
+# Check git config first
+RAE_MGMT=$(git config --global --get rae.mgmt-path)
+# Fallback to common locations
+[ -z "$RAE_MGMT" ] && [ -d ~/Code/rae-mgmt ] && RAE_MGMT=~/Code/rae-mgmt
+# List worktrees
+cd "$RAE_MGMT" && git worktree list
 ```
-
-**Typical path:** `$RAE_MGMT_PATH` (set in your shell config)
 
 **Directory structure:**
 | Content type | Location |
