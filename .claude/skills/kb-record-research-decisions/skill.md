@@ -35,10 +35,10 @@ When uncertain, ask the user.
 
 **rae-mgmt location:** Find active worktree via:
 ```bash
-cd /Users/trippwickersham/Code/rae-mgmt && git worktree list
+cd $RAE_MGMT_PATH && git worktree list
 ```
 
-**Typical path:** `/Users/trippwickersham/conductor/workspaces/rae-mgmt/{worktree}/`
+**Typical path:** `$RAE_MGMT_PATH` (set in your shell config)
 
 **Directory structure:**
 | Content type | Location |

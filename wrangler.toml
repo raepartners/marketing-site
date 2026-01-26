@@ -1,0 +1,8 @@
+name = "rae-mktg"
+pages_build_output_dir = "dist"
+
+[build]
+command = "pnpm install && pnpm build"
+
+[build.environment]
+NODE_VERSION = "20"
