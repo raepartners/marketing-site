@@ -28,24 +28,28 @@ const logos = [
   </div>
 
   <div class="logo-marquee-container relative">
-    <!-- Fade edges - use CSS variable directly for proper color matching -->
+    <!-- Fade edges -->
     <div class="fade-edge-left absolute left-0 top-0 bottom-0 w-24 z-10 pointer-events-none" />
     <div class="fade-edge-right absolute right-0 top-0 bottom-0 w-24 z-10 pointer-events-none" />
 
-    <!-- Scrolling track -->
-    <div class="logo-marquee-track flex items-center gap-16">
+    <!-- Scrolling track - each set wrapped with trailing padding for seamless 50% loop -->
+    <div class="logo-marquee-track flex">
       {/* First set of logos */}
-      {logos.map((logo) => (
-        <div class:list={["logo-item flex-shrink-0 flex items-center justify-center", logo.height || 'h-10']}>
-          <div class:list={["logo-mask h-full opacity-50 hover:opacity-80 transition-opacity", logo.width || 'w-28']} style={`-webkit-mask-image: url(${logo.src}); mask-image: url(${logo.src});`} role="img" aria-label={logo.name}></div>
-        </div>
-      ))}
+      <div class="logo-set flex items-center gap-16 pr-16">
+        {logos.map((logo) => (
+          <div class:list={["logo-item flex-shrink-0 flex items-center justify-center", logo.height || 'h-10']}>
+            <div class:list={["logo-mask h-full opacity-50 hover:opacity-80 transition-opacity", logo.width || 'w-28']} style={`-webkit-mask-image: url(${logo.src}); mask-image: url(${logo.src});`} role="img" aria-label={logo.name}></div>
+          </div>
+        ))}
+      </div>
       {/* Duplicate for seamless loop */}
-      {logos.map((logo) => (
-        <div class:list={["logo-item flex-shrink-0 flex items-center justify-center", logo.height || 'h-10']} aria-hidden="true">
-          <div class:list={["logo-mask h-full opacity-50 hover:opacity-80 transition-opacity", logo.width || 'w-28']} style={`-webkit-mask-image: url(${logo.src}); mask-image: url(${logo.src});`}></div>
-        </div>
-      ))}
+      <div class="logo-set flex items-center gap-16 pr-16" aria-hidden="true">
+        {logos.map((logo) => (
+          <div class:list={["logo-item flex-shrink-0 flex items-center justify-center", logo.height || 'h-10']}>
+            <div class:list={["logo-mask h-full opacity-50 hover:opacity-80 transition-opacity", logo.width || 'w-28']} style={`-webkit-mask-image: url(${logo.src}); mask-image: url(${logo.src});`}></div>
+          </div>
+        ))}
+      </div>
     </div>
   </div>
 </section>
@@ -54,51 +58,44 @@ const logos = [
   /* Section background - use exact same oklch as --background in global.css */
   .logo-marquee-section {
     background-color: oklch(0.985 0.008 85);
+    /* Isolate this section to prevent repaint interactions with page */
+    isolation: isolate;
+    contain: layout style paint;
+  }
+
+  .logo-marquee-container {
+    /* Force GPU layer for the container */
+    transform: translateZ(0);
   }
 
   :global(.dark) .logo-marquee-section {
     background-color: oklch(0.18 0.015 50);
   }
 
-  /* Animation speed scales inversely with screen width - smaller screens need faster scroll */
+  /*
+   * Animation duration: consistent ~60-70 px/s across all viewports.
+   * 2077px / 32s = 65 px/s
+   */
   .logo-marquee-track {
-    animation: marquee 6s linear infinite; /* Small mobile - fastest */
-  }
-
-  @media (min-width: 480px) {
-    .logo-marquee-track {
-      animation-duration: 10s; /* Mobile */
-    }
-  }
-
-  @media (min-width: 640px) {
-    .logo-marquee-track {
-      animation-duration: 16s; /* Tablet */
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .logo-marquee-track {
-      animation-duration: 24s; /* Desktop */
-    }
-  }
-
-  @media (min-width: 1280px) {
-    .logo-marquee-track {
-      animation-duration: 30s; /* Large desktop */
-    }
+    animation: marquee 32s linear infinite;
   }
 
   .logo-marquee-container:hover .logo-marquee-track {
     animation-play-state: paused;
   }
 
+  /* GPU acceleration for smooth animation */
+  .logo-marquee-track {
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+
   @keyframes marquee {
     0% {
-      transform: translateX(0);
+      transform: translate3d(0, 0, 0);
     }
     100% {
-      transform: translateX(-50%);
+      transform: translate3d(-2077px, 0, 0);
     }
   }
 

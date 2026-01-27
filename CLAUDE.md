@@ -155,6 +155,26 @@ Hosted on Cloudflare Pages (`rae-mktg` project):
 
 Configuration in `wrangler.toml`. Build: `pnpm build`, output: `dist/`
 
+## Parallel Workspace Environment
+
+This repo is used in parallel agentic development (multiple Claude Code sessions on different branches/worktrees).
+
+**Never use `pkill` to stop dev/preview servers** - other workspaces may be running their own servers.
+
+**Reserved ports:**
+| Port | Purpose |
+|------|---------|
+| 4321 | Default dev server (`pnpm dev`) |
+| 4399 | PR screenshot capture |
+
+When you need an isolated server (e.g., for screenshots):
+```bash
+pnpm preview --port 4399 &
+PREVIEW_PID=$!
+# ... do work ...
+kill $PREVIEW_PID  # Kill only YOUR server
+```
+
 ## Important Notes
 
 - Stay on Astro v5.15.9+ for security patches
