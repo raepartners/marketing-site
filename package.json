@@ -4,6 +4,8 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
+    "dev:puma": "node scripts/puma-dev-register.mjs",
+    "dev:cleanup": "node scripts/puma-dev-register.mjs --cleanup",
     "build": "astro build",
     "preview": "astro preview",
     "test": "pnpm build && playwright test",

@@ -35,6 +35,8 @@ Find active worktrees: `cd $RAE_MGMT_PATH && git worktree list`
 
 ```bash
 pnpm dev        # Start dev server (http://localhost:4321)
+pnpm dev:puma   # Start with branch-specific URL (https://{branch}.mktg.rae.test)
+pnpm dev:cleanup # Remove stale puma-dev entries
 pnpm build      # Build static site to dist/
 pnpm preview    # Preview production build
 pnpm test       # Run all Playwright tests
@@ -162,13 +164,46 @@ This repo is used in parallel agentic development (multiple Claude Code sessions
 
 **Never use `pkill` to stop dev/preview servers** - other workspaces may be running their own servers.
 
-**Reserved ports:**
+### Local Preview URLs (puma-dev)
+
+For parallel development, use `pnpm dev:puma` to get branch-specific local URLs like `https://trippersham-feature-branch.mktg.rae.test`. This prevents port collisions between workspaces.
+
+**One-time setup (run in any terminal):**
+```bash
+brew install puma/puma/puma-dev
+sudo puma-dev -setup    # Creates /etc/resolver/test (requires password)
+puma-dev -install -d test:mktg.rae.test  # Installs LaunchAgent with custom domain
+```
+
+**Daily usage:**
+```bash
+pnpm dev:puma           # Start with auto-registered URL
+# → Access at https://{sanitized-branch-name}.mktg.rae.test
+
+pnpm dev:cleanup        # Remove stale puma-dev entries
+```
+
+**How it works:**
+- `scripts/puma-dev-register.mjs` detects your git branch
+- Sanitizes it for DNS (e.g., `trippersham/feature` → `trippersham-feature`)
+- Allocates a deterministic port (hash-based, same branch = same port)
+- Registers with puma-dev (`~/.puma-dev/{subdomain}`)
+- Cleans up automatically on Ctrl+C
+
+**Features:**
+- HTTPS with trusted certificates (no browser warnings)
+- WebSocket HMR works through the proxy
+- Deterministic ports: same branch always gets same port
+- Registry at `~/.puma-dev-registry.json` tracks active entries
+
+**Reserved ports (not used by puma-dev allocation):**
 | Port | Purpose |
 |------|---------|
 | 4321 | Default dev server (`pnpm dev`) |
 | 4399 | PR screenshot capture |
+| 4400-5400 | puma-dev auto-allocation range |
 
-When you need an isolated server (e.g., for screenshots):
+When you need an isolated server without puma-dev (e.g., for screenshots):
 ```bash
 pnpm preview --port 4399 &
 PREVIEW_PID=$!
