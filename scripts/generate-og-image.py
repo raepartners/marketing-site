@@ -13,7 +13,7 @@
 Generate Open Graph image for rae marketing site.
 
 Creates a 1200x630 PNG suitable for social media link previews,
-using the official rae-logo.svg and brand colors.
+using the official rae-logo.svg centered with minimal padding.
 
 Requires: rsvg-convert (brew install librsvg)
 
@@ -36,12 +36,11 @@ import tempfile
 from pathlib import Path
 
 import typer
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 # Brand colors (from global.css solarpunk theme)
 BACKGROUND = (253, 251, 247)  # Warm white #fdfbf7
 PRIMARY_HEX = "#c4933d"  # Solar gold
-FOREGROUND = (41, 37, 36)  # Deep brown #292524
 
 
 def main(
@@ -68,8 +67,8 @@ def main(
         "",
     )
 
-    # Scale logo to fit nicely (about 55% of height)
-    logo_height = int(height * 0.55)
+    # Scale logo larger than canvas to crop out SVG's built-in padding
+    logo_height = int(height * 1.20)
     # Original SVG is 400x280, maintain aspect ratio
     logo_width = int(logo_height * (400 / 280))
 
@@ -108,9 +107,9 @@ def main(
         # Open rendered logo
         logo = Image.open(png_temp_path).convert("RGBA")
 
-        # Center horizontally, position in upper portion
+        # Center both horizontally and vertically
         x = (width - logo_width) // 2
-        y = int(height * 0.08)
+        y = (height - logo_height) // 2
 
         img.paste(logo, (x, y), logo)
 
@@ -118,36 +117,6 @@ def main(
         # Clean up temp files
         Path(svg_temp_path).unlink(missing_ok=True)
         Path(png_temp_path).unlink(missing_ok=True)
-
-    # Add tagline text at bottom
-    draw = ImageDraw.Draw(img)
-    tagline = "Responsible. Autonomous. Engineering."
-
-    # Try system fonts with fallback
-    font_size = 38
-    font = None
-    font_paths = [
-        "/System/Library/Fonts/Helvetica.ttc",
-        "/System/Library/Fonts/SFNSText.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-    ]
-    for font_path in font_paths:
-        try:
-            font = ImageFont.truetype(font_path, font_size)
-            break
-        except OSError:
-            continue
-
-    if font is None:
-        font = ImageFont.load_default()
-
-    # Center text horizontally
-    bbox = draw.textbbox((0, 0), tagline, font=font)
-    text_width = bbox[2] - bbox[0]
-    text_x = (width - text_width) // 2
-    text_y = height - 110
-
-    draw.text((text_x, text_y), tagline, fill=FOREGROUND, font=font)
 
     # Save
     output.parent.mkdir(parents=True, exist_ok=True)
