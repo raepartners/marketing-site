@@ -1,6 +1,8 @@
 interface Env {
   LEADS_BUCKET: R2Bucket;
   SLACK_WEBHOOK_URL: string;
+  CF_PAGES_BRANCH?: string;
+  CF_PAGES_URL?: string;
 }
 
 interface ContactFormData {
@@ -46,12 +48,21 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     const timestamp = new Date().toISOString();
     const uuid = crypto.randomUUID();
-    const key = `leads/${timestamp.split('T')[0]}/${uuid}.json`;
+
+    // Determine environment
+    const branch = env.CF_PAGES_BRANCH || 'unknown';
+    const isProduction = branch === 'main';
+    const envPrefix = isProduction ? 'production' : 'preview';
+
+    // Store in environment-specific path
+    const key = `leads/${envPrefix}/${timestamp.split('T')[0]}/${uuid}.json`;
 
     const lead = {
       ...data,
       submittedAt: timestamp,
       id: uuid,
+      environment: envPrefix,
+      branch: isProduction ? undefined : branch,
     };
 
     // Write to R2
@@ -65,16 +76,31 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         ? `_${data.optOutReason === 'none' ? "Doesn't use coding agents yet" : "Uses some, not sure which"}_`
         : data.agents.join(', ') || 'None selected';
 
+      const headerText = isProduction
+        ? 'New Contact Form Submission'
+        : `[TEST - ${branch}] New Contact Form Submission`;
+
       const slackPayload = {
         blocks: [
           {
             type: 'header',
             text: {
               type: 'plain_text',
-              text: 'New Contact Form Submission',
+              text: headerText,
               emoji: true,
             },
           },
+          ...(isProduction ? [] : [
+            {
+              type: 'context',
+              elements: [
+                {
+                  type: 'mrkdwn',
+                  text: `:warning: *Test submission from preview environment* (${branch})`,
+                },
+              ],
+            },
+          ]),
           {
             type: 'section',
             fields: [
