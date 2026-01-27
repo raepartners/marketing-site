@@ -38,5 +38,8 @@ pnpm-debug.log*
 # Research notes
 research/
 
-# PR screenshots (uploaded as attachments, not committed)
+# PR screenshots (uploaded to R2, not committed)
 pr-screenshots/
+
+# Wrangler local state
+.wrangler/
