@@ -1,0 +1,97 @@
+name: Cleanup Preview Deployments
+
+# Cleans up Cloudflare Pages preview deployments when a PR is closed.
+#
+# IMPORTANT LIMITATION: Cloudflare does NOT allow deleting the "latest"
+# deployment for any branch, even after the branch is deleted from git.
+#
+# Why this limitation exists:
+#   Cloudflare maintains branch alias URLs (e.g., feature-x.rae-mktg.pages.dev)
+#   that always point to the latest deployment for that branch. To ensure these
+#   URLs never 404, Cloudflare prevents deletion of whatever it considers the
+#   "latest" deployment for each branch name it has ever seen.
+#
+# What this means in practice:
+#   - If a branch had 5 deployments, this workflow will delete 4 of them
+#   - The 5th (latest) deployment will fail to delete with an API error
+#   - The preview URL for that branch will continue to work indefinitely
+#   - That one deployment will remain visible in the Cloudflare dashboard
+#
+# Impact:
+#   - No cost impact (Cloudflare Pages has unlimited free preview deployments)
+#   - Minor dashboard clutter (one stale deployment per closed PR)
+#   - Stale preview URLs remain accessible (potential confusion, minor security)
+#
+# There is no workaround. Cloudflare does not provide:
+#   - An API flag to force-delete the latest deployment
+#   - A way to "unmark" a deployment as latest
+#   - Any sync with git to detect deleted branches
+#
+# The only way to fully remove these is to delete the entire Pages project.
+# This is a known limitation: https://community.cloudflare.com/t/delete-cloudlfare-pages-deployments/345640
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      branch_name:
+        description: 'Branch name to clean up (e.g., feature-x or trippersham/feature-x)'
+        required: true
+        type: string
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete preview deployments for closed branch
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PROJECT_NAME: rae-mktg
+          # Use manual input if provided, otherwise use the PR's head branch
+          BRANCH_NAME: ${{ inputs.branch_name || github.head_ref }}
+        run: |
+          echo "Cleaning up preview deployments for branch: $BRANCH_NAME"
+
+          DELETED=0
+          PAGE=1
+
+          while true; do
+            # Fetch deployments page
+            RESPONSE=$(curl -s \
+              "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/pages/projects/$PROJECT_NAME/deployments?page=$PAGE" \
+              -H "Authorization: Bearer $CF_API_TOKEN")
+
+            # Filter deployments for this branch
+            DEPLOYMENTS=$(echo "$RESPONSE" | jq -r --arg branch "$BRANCH_NAME" \
+              '.result[] | select(.deployment_trigger.metadata.branch == $branch) | .id')
+
+            # Delete each matching deployment
+            for DEPLOYMENT_ID in $DEPLOYMENTS; do
+              echo "Deleting deployment: $DEPLOYMENT_ID"
+              DELETE_RESPONSE=$(curl -s -X DELETE \
+                "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/pages/projects/$PROJECT_NAME/deployments/$DEPLOYMENT_ID" \
+                -H "Authorization: Bearer $CF_API_TOKEN")
+
+              if [ "$(echo "$DELETE_RESPONSE" | jq -r '.success')" = "true" ]; then
+                echo "✓ Deleted deployment $DEPLOYMENT_ID"
+                DELETED=$((DELETED + 1))
+              else
+                # Expected: The latest deployment for a branch cannot be deleted (Cloudflare limitation).
+                # This will fail for exactly one deployment per branch - the most recent one.
+                # See workflow header comments for full explanation.
+                echo "✗ Failed to delete $DEPLOYMENT_ID (likely the latest - see workflow comments)"
+                echo "  Error: $(echo "$DELETE_RESPONSE" | jq -r '.errors[0].message // .errors')"
+              fi
+            done
+
+            # Check if there are more pages
+            TOTAL_PAGES=$(echo "$RESPONSE" | jq -r '.result_info.total_pages // 1')
+            if [ "$PAGE" -ge "$TOTAL_PAGES" ]; then
+              break
+            fi
+            PAGE=$((PAGE + 1))
+          done
+
+          echo "Cleanup complete. Deleted $DELETED deployment(s) for branch: $BRANCH_NAME"
