@@ -166,9 +166,15 @@ Configuration in `wrangler.toml`. Build: `pnpm build`, output: `dist/`
 
 PostHog provides product analytics with AI-friendly data access via MCP and APIs.
 
+### Prerequisites
+
+- **1Password CLI** (`op`) installed and signed in
+- Access to **Causadix** vault (for client-side tracking — just works)
+- Personal PostHog API key (for MCP server — see setup below)
+
 ### Setup (1Password)
 
-Secrets are managed via 1Password and injected automatically on session start.
+Client-side tracking secrets are managed via 1Password and injected automatically on session start.
 
 1. Create a PostHog account at https://us.posthog.com
 2. Create a project and copy the project API key
@@ -195,9 +201,36 @@ Secrets are managed via 1Password and injected automatically on session start.
 - **User identification:** `identified_only` mode (privacy-respecting)
 - **Custom events:** Use `posthog.capture('event_name', { properties })` in client code
 
-### AI/Data Access
+### AI/Data Access (MCP Server)
 
-- **MCP Server:** https://github.com/PostHog/mcp — query analytics via Claude
+The PostHog MCP server lets Claude query analytics directly. Each developer needs their own personal API key.
+
+**First-time setup:**
+
+1. Create a PostHog personal API key:
+   - Go to https://us.posthog.com/settings/user-api-keys
+   - Create key with scopes: `project:read`, `insight:read`
+
+2. Store in your 1Password Private vault:
+   ```bash
+   op item create --vault Private --category "API Credential" \
+     --title "PostHog MCP API Key" \
+     "credential=phx_YOUR_KEY_HERE"
+   ```
+
+3. Get the item ID:
+   ```bash
+   op item list --vault Private --format json | jq '.[] | select(.title | contains("PostHog")) | .id'
+   ```
+
+4. Update `.claude/hooks/run-posthog-mcp.sh` with your item ID:
+   ```bash
+   export POSTHOG_API_KEY=$(op read "op://Private/YOUR_ITEM_ID/credential" 2>/dev/null)
+   ```
+
+5. Restart Claude Code to connect the MCP server
+
+**Other data access:**
 - **HogQL:** SQL-like queries at https://us.posthog.com/sql
 - **API:** Full REST API + batch exports to BigQuery/Snowflake
 - **Python SDK:** `pip install posthog`
