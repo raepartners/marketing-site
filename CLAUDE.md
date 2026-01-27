@@ -211,24 +211,14 @@ The PostHog MCP server lets Claude query analytics directly. Each developer need
    - Go to https://us.posthog.com/settings/user-api-keys
    - Create key with scopes: `project:read`, `insight:read`
 
-2. Store in your 1Password Private vault:
+2. Add to your shell profile (`~/.zshrc` or `~/.bashrc`):
    ```bash
-   op item create --vault Private --category "API Credential" \
-     --title "PostHog MCP API Key" \
-     "credential=phx_YOUR_KEY_HERE"
+   export POSTHOG_API_KEY="phx_YOUR_KEY_HERE"
    ```
 
-3. Get the item ID:
-   ```bash
-   op item list --vault Private --format json | jq '.[] | select(.title | contains("PostHog")) | .id'
-   ```
+3. Restart your terminal and Claude Code
 
-4. Update `.claude/hooks/run-posthog-mcp.sh` with your item ID:
-   ```bash
-   export POSTHOG_API_KEY=$(op read "op://Private/YOUR_ITEM_ID/credential" 2>/dev/null)
-   ```
-
-5. Restart Claude Code to connect the MCP server
+The MCP server script checks for this env var first. If not set, it exits gracefully (no errors for devs without setup).
 
 **Other data access:**
 - **HogQL:** SQL-like queries at https://us.posthog.com/sql
