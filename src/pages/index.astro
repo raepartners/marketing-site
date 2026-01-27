@@ -4,6 +4,7 @@ import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import Sun from '../components/Sun.astro';
 import LogoMarquee from '../components/LogoMarquee.astro';
+import { ContactButton } from '../components/ContactButton';
 ---
 
 <BaseLayout
@@ -53,12 +54,14 @@ import LogoMarquee from '../components/LogoMarquee.astro';
           >
             Read our thinking
           </a>
-          <a
-            href="mailto:hello@rae.partners"
-            class="inline-flex items-center justify-center px-8 py-4 text-lg font-medium rounded-md border border-border bg-background hover:bg-muted transition-colors"
+<ContactButton
+            client:load
+            source="homepage_cta"
+            variant="primary"
+            className="px-8 py-4 text-lg border border-border bg-background text-foreground hover:bg-muted hover:text-foreground"
           >
             Get in touch
-          </a>
+          </ContactButton>
         </div>
       </div>
     </section>

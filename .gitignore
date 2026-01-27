@@ -40,6 +40,9 @@ pnpm-debug.log*
 # Research notes
 research/
 
+# Agent plans (local working docs)
+docs/plans/
+
 # PR screenshots (uploaded to R2, not committed)
 pr-screenshots/
 

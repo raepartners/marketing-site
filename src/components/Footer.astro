@@ -1,5 +1,6 @@
 ---
 import Logo from './Logo.astro';
+import { ContactButton } from './ContactButton';
 
 const currentYear = new Date().getFullYear();
 ---
@@ -16,7 +17,7 @@ const currentYear = new Date().getFullYear();
       
       <div class="flex items-center gap-6 text-sm text-muted-foreground">
         <a href="/blog" class="hover:text-foreground transition-colors">Blog</a>
-        <a href="mailto:hello@rae.partners" class="hover:text-foreground transition-colors">Contact</a>
+        <ContactButton client:load source="footer" variant="link" />
       </div>
     </div>
     
