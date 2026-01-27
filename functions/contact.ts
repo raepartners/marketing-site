@@ -94,11 +94,18 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         ],
       };
 
-      await fetch(env.SLACK_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(slackPayload),
-      });
+      try {
+        const slackResponse = await fetch(env.SLACK_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(slackPayload),
+        });
+        if (!slackResponse.ok) {
+          console.error('Slack notification failed:', slackResponse.status, await slackResponse.text());
+        }
+      } catch (slackError) {
+        console.error('Slack notification error:', slackError);
+      }
     }
 
     return new Response(JSON.stringify({ success: true, id: uuid }), {

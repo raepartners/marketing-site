@@ -17,7 +17,7 @@ declare global {
   }
 }
 
-export type ContactSource = 'nav' | 'footer' | 'homepage_cta' | 'team_cta';
+export type ContactSource = 'nav' | 'footer' | 'homepage_cta' | 'team_cta' | 'contact_page';
 
 interface ContactFormProps {
   source: ContactSource;
