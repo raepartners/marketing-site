@@ -31,9 +31,11 @@ pnpm-debug.log*
 /blob-report/
 /playwright/.cache/
 
-# Claude Code (keep skills tracked)
+# Claude Code (keep skills, hooks, and settings tracked)
 .claude/*
 !.claude/skills/
+!.claude/hooks/
+!.claude/settings.json
 
 # Research notes
 research/

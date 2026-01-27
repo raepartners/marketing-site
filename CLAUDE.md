@@ -28,6 +28,7 @@ Find active worktrees: `cd $RAE_MGMT_PATH && git worktree list`
 - **Styling:** Tailwind CSS 4 + shadcn/ui
 - **Content:** MDX + Content Collections (Zod schemas)
 - **Testing:** Playwright + axe-core
+- **Analytics:** PostHog (product analytics)
 - **Package Manager:** pnpm
 
 ## Commands
@@ -160,3 +161,47 @@ Configuration in `wrangler.toml`. Build: `pnpm build`, output: `dist/`
 - Stay on Astro v5.15.9+ for security patches
 - Do not use Auto Minify in Cloudflare (causes hydration issues)
 - Blog URLs are dateless (`/blog/slug`) — dates are in metadata only
+
+## Analytics (PostHog)
+
+PostHog provides product analytics with AI-friendly data access via MCP and APIs.
+
+### Setup (1Password)
+
+Secrets are managed via 1Password and injected automatically on session start.
+
+1. Create a PostHog account at https://us.posthog.com
+2. Create a project and copy the project API key
+3. Add the key to 1Password:
+   - Create an item in the **Causadix** vault (or use existing)
+   - Add field: `PostHog Project API Key`
+4. Update `.op.env` with the correct item ID:
+   ```bash
+   # Find item ID
+   op item list --vault Causadix --format json | jq '.[] | {title, id}'
+   ```
+5. For Cloudflare Pages, add `PUBLIC_POSTHOG_KEY` in the dashboard
+
+### How It Works
+
+- `.op.env` — 1Password secret references (committed, no actual secrets)
+- `.claude/hooks/load-op-env.py` — SessionStart hook resolves secrets
+- Secrets are injected into the session environment automatically
+
+### Features
+
+- **Pageview tracking:** Automatic on every page load
+- **Page leave tracking:** Captures time on page
+- **User identification:** `identified_only` mode (privacy-respecting)
+- **Custom events:** Use `posthog.capture('event_name', { properties })` in client code
+
+### AI/Data Access
+
+- **MCP Server:** https://github.com/PostHog/mcp — query analytics via Claude
+- **HogQL:** SQL-like queries at https://us.posthog.com/sql
+- **API:** Full REST API + batch exports to BigQuery/Snowflake
+- **Python SDK:** `pip install posthog`
+
+### Dashboard
+
+View analytics at https://us.posthog.com — free tier includes 1M events/month
