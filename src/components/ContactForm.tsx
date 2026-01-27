@@ -13,6 +13,8 @@ declare global {
   interface Window {
     posthog?: {
       capture: (event: string, properties?: Record<string, unknown>) => void;
+      get_session_id: () => string | undefined;
+      get_distinct_id: () => string | undefined;
     };
   }
 }
@@ -330,6 +332,20 @@ export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
       agents.push(`other: ${formData.otherAgent.trim()}`);
     }
 
+    // Collect analytics tracking data
+    const urlParams = new URLSearchParams(window.location.search);
+    const tracking = {
+      posthog_session_id: window.posthog?.get_session_id() || null,
+      posthog_distinct_id: window.posthog?.get_distinct_id() || null,
+      utm_source: urlParams.get('utm_source'),
+      utm_medium: urlParams.get('utm_medium'),
+      utm_campaign: urlParams.get('utm_campaign'),
+      utm_term: urlParams.get('utm_term'),
+      utm_content: urlParams.get('utm_content'),
+      referrer: document.referrer || null,
+      landing_page: window.location.pathname,
+    };
+
     const payload = {
       name: formData.name.trim(),
       email: formData.email.trim(),
@@ -338,6 +354,7 @@ export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
       optedOut: !!optOut,
       optOutReason: optOut,
       source,
+      tracking,
     };
 
     try {

@@ -5,6 +5,18 @@ interface Env {
   CF_PAGES_URL?: string;
 }
 
+interface TrackingData {
+  posthog_session_id: string | null;
+  posthog_distinct_id: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_term: string | null;
+  utm_content: string | null;
+  referrer: string | null;
+  landing_page: string | null;
+}
+
 interface ContactFormData {
   name: string;
   email: string;
@@ -13,6 +25,7 @@ interface ContactFormData {
   optedOut: boolean;
   optOutReason: string | null;
   source: string;
+  tracking?: TrackingData;
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
