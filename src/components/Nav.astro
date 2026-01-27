@@ -1,6 +1,7 @@
 ---
 import Logo from './Logo.astro';
 import { ContactButton } from './ContactButton';
+import { MobileMenu } from './MobileMenu';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -18,19 +19,22 @@ const currentPath = Astro.url.pathname;
     </a>
     
     <div class="flex items-center gap-4">
-      {navLinks.map((link) => (
-        <a
-          href={link.href}
-          class:list={[
-            'text-sm font-medium transition-colors hover:text-primary',
-            currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href))
-              ? 'text-primary'
-              : 'text-muted-foreground'
-          ]}
-        >
-          {link.label}
-        </a>
-      ))}
+      {/* Desktop nav links - hidden on mobile */}
+      <div class="hidden sm:flex items-center gap-4">
+        {navLinks.map((link) => (
+          <a
+            href={link.href}
+            class:list={[
+              'text-sm font-medium transition-colors hover:text-primary',
+              currentPath === link.href || (link.href !== '/' && currentPath.startsWith(link.href))
+                ? 'text-primary'
+                : 'text-muted-foreground'
+            ]}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
       <button
         id="theme-toggle"
         class="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -44,6 +48,10 @@ const currentPath = Astro.url.pathname;
         </svg>
       </button>
 <ContactButton client:load source="nav" variant="primary" />
+      {/* Mobile menu - visible only on mobile */}
+      <div class="sm:hidden">
+        <MobileMenu client:load navLinks={navLinks} currentPath={currentPath} />
+      </div>
     </div>
   </div>
 </nav>
