@@ -1,0 +1,34 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import { ContactForm } from '../components/ContactForm';
+---
+
+<BaseLayout
+  title="Contact"
+  description="Get in touch with rae. Tell us about your team and how we can help you adopt AI coding agents at scale."
+>
+  <Nav />
+
+  <main class="pt-24 pb-16">
+    <section class="min-h-[60vh] flex flex-col items-center justify-center px-6">
+      <div class="w-full max-w-md mx-auto">
+        <div class="text-center mb-8">
+          <h1 class="text-3xl font-bold tracking-tight text-foreground mb-3">
+            Get in touch
+          </h1>
+          <p class="text-muted-foreground">
+            Tell us about your team and we'll reach out to chat.
+          </p>
+        </div>
+
+        <div class="bg-card border border-border rounded-lg p-6 shadow-sm">
+          <ContactForm client:load source="nav" />
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>

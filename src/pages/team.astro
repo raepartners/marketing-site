@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import { ContactButton } from '../components/ContactButton';
 
 const partners = [
   {
@@ -54,7 +55,7 @@ const partners = [
       <div class="bg-card border border-border rounded-lg p-8">
         <h2 class="text-lg font-semibold text-foreground mb-4">Why we started RAE</h2>
         <p class="text-muted-foreground leading-relaxed mb-4">
-          We've spent the last few years building <a href="https://hominy.ai" class="text-primary hover:underline">Hominy</a>,
+          We've spent the last few years building <a href="https://hominy.ai" class="text-primary underline hover:no-underline">Hominy</a>,
           a prop tech startup. Along the way, we built out a battle-tested toolchain to run teams of coding agents in parallel because we had to.
           Now we run the entire business on AI.
         </p>
@@ -121,12 +122,14 @@ const partners = [
         We help engineering teams trust AI coding agents at scale.<br />
         We can help you catch up.
       </p>
-      <a
-        href="mailto:hello@rae.partners"
-        class="inline-flex items-center justify-center px-8 py-4 text-lg font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+<ContactButton
+        client:load
+        source="team_cta"
+        variant="primary"
+        className="px-8 py-4 text-lg"
       >
         Get in touch
-      </a>
+      </ContactButton>
     </section>
   </main>
 

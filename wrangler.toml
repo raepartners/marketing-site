@@ -1,2 +1,7 @@
 name = "rae-mktg"
 pages_build_output_dir = "dist"
+
+# R2 bucket for storing contact form leads
+[[r2_buckets]]
+binding = "LEADS_BUCKET"
+bucket_name = "rae-leads"
