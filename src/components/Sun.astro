@@ -1,0 +1,110 @@
+---
+interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+
+/*
+  Wide viewBox approach to prevent box-like clipping of radial glow:
+  - viewBox is 1200x400, extending from y=-200 to y=200
+  - Adds 400 units horizontal padding, 200 units vertical padding above
+  - Sun stays at cy=200 (bottom of viewBox)
+  - SVG is 2x taller, so container uses translate-y-[7.5%] instead of [15%]
+  - This gives radial glow room to spread in all directions
+*/
+---
+
+<!--
+  Partially risen sun SVG with proper solar physics
+
+  Key techniques:
+  1. Limb darkening - bright center, dimmer/warmer edges (how real suns appear)
+  2. Wide viewBox with oversized container - prevents box-like clipping of radial glow
+  3. Corona/halo via CSS drop-shadow for natural extension
+
+  Sources: limb darkening research, SVG filter clipping solutions
+-->
+<svg
+  viewBox="0 -200 1200 400"
+  class:list={['sun-svg', className]}
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <!--
+      Sun disc with LIMB DARKENING
+      Center: bright pale (almost white)
+      Edge: warmer, dimmer (orange-gold)
+    -->
+    <radialGradient id="sun-disc-limb" cx="50%" cy="100%" r="50%">
+      <!-- Bright center - high lightness, low chroma -->
+      <stop offset="0%" stop-color="oklch(0.97 0.05 85)" stop-opacity="1" />
+      <stop offset="30%" stop-color="oklch(0.92 0.10 80)" stop-opacity="1" />
+      <!-- Dimmer edges - lower lightness, warmer hue -->
+      <stop offset="70%" stop-color="var(--sunrise-horizon)" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="var(--sunrise-corona)" stop-opacity="0.8" />
+    </radialGradient>
+
+    <!-- Corona base gradient - the shape that CSS drop-shadow will blur -->
+    <radialGradient id="corona-gradient" cx="50%" cy="100%" r="55%">
+      <stop offset="0%" stop-color="var(--sunrise-horizon)" stop-opacity="0.85" />
+      <stop offset="60%" stop-color="var(--sunrise-corona)" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="var(--sunrise-corona)" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Clip to show only top portion (horizon line) -->
+    <clipPath id="horizon-clip">
+      <rect x="0" y="-200" width="1200" height="400" />
+    </clipPath>
+  </defs>
+
+  <!-- Corona layer - CSS drop-shadow creates the glow -->
+  <ellipse
+    class="corona-layer"
+    cx="600"
+    cy="200"
+    rx="140"
+    ry="95"
+    fill="url(#corona-gradient)"
+    clip-path="url(#horizon-clip)"
+  />
+
+  <!-- Sun disc with limb darkening (bright center, warm edges) -->
+  <ellipse
+    cx="600"
+    cy="200"
+    rx="105"
+    ry="72"
+    fill="url(#sun-disc-limb)"
+    clip-path="url(#horizon-clip)"
+  />
+</svg>
+
+<style>
+  .sun-svg {
+    /* Render 3x wider than container, centered, so glow has room to spread */
+    width: 300%;
+    max-width: none;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    overflow: visible;
+  }
+
+  /* Corona glow using CSS drop-shadow - centered, extends naturally in all directions */
+  .corona-layer {
+    filter:
+      drop-shadow(0 0 12px oklch(0.85 0.16 80 / 1))
+      drop-shadow(0 0 25px oklch(0.80 0.18 78 / 0.85))
+      drop-shadow(0 0 50px oklch(0.72 0.20 75 / 0.7))
+      drop-shadow(0 0 90px oklch(0.68 0.18 75 / 0.5))
+      drop-shadow(0 0 150px oklch(0.65 0.15 75 / 0.3));
+  }
+
+  /* Adjust for dark mode - keep golden hour warmth while ensuring text readability */
+  :global(.dark) .sun-svg {
+    opacity: 0.8;
+    filter: saturate(1.2);
+  }
+</style>

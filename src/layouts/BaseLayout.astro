@@ -14,20 +14,29 @@ interface Props {
 const {
   title,
   description,
-  canonicalUrl = Astro.url.href,
+  canonicalUrl = new URL(Astro.url.pathname, Astro.site).href,
   ogImage = '/images/og-default.png',
   ogType = 'website',
   publishedTime,
   modifiedTime,
 } = Astro.props;
 
-const siteName = 'RAE Partners';
+const siteName = 'rae';
 const fullTitle = title === siteName ? title : `${title} | ${siteName}`;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
   <head>
+    <!-- Dark mode script - runs before page renders to prevent flash -->
+    <script is:inline>
+      (function() {
+        const stored = localStorage.getItem('theme');
+        if (stored === 'dark' || (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        }
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/images/rae-logo.svg" />
@@ -71,11 +80,11 @@ const fullTitle = title === siteName ? title : `${title} | ${siteName}`;
         "dateModified": modifiedTime || publishedTime,
         "author": {
           "@type": "Organization",
-          "name": "RAE Partners"
+          "name": "rae"
         },
         "publisher": {
           "@type": "Organization",
-          "name": "RAE Partners",
+          "name": "rae",
           "url": "https://rae.partners"
         }
       } : {})
