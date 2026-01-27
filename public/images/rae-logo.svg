@@ -8,7 +8,8 @@
     </style>
   </defs>
 
-  <!-- Transparent background -->
+  <!-- White background for favicon visibility -->
+  <rect width="400" height="280" fill="white" rx="20" ry="20"/>
 
   <!-- Horizon line with taper (thick at center = sun stroke, thin at edges) -->
   <path d="M 83.1 210

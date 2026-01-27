@@ -68,7 +68,7 @@ test.describe('SEO Tests', () => {
           .locator('script[type="application/ld+json"]')
           .textContent();
         expect(jsonLd).not.toBeNull();
-        
+
         // Should be valid JSON
         const parsed = JSON.parse(jsonLd!);
         expect(parsed['@context']).toBe('https://schema.org');
