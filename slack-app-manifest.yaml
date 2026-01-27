@@ -1,0 +1,27 @@
+display_information:
+  name: rae notifications
+  description: Notifications from rae systems and services
+  background_color: "#D4A574"
+  long_description: |
+    Central notification hub for rae partners systems. Posts to various
+    channels based on the type of notification:
+
+    - Contact form submissions from rae.partners
+    - Deployment and build status updates
+    - Monitoring and alerting notifications
+    - System health updates
+
+features:
+  bot_user:
+    display_name: rae notifications
+    always_online: false
+
+oauth_config:
+  scopes:
+    bot:
+      - incoming-webhook
+
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false

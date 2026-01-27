@@ -21,6 +21,7 @@ export const codingAgents: CodingAgent[] = [
   // Independent
   { id: 'cursor', name: 'Cursor', icon: '/icons/agents/cursor.svg' },
   { id: 'windsurf', name: 'Windsurf', icon: '/icons/agents/windsurf.svg' },
+  { id: 'warp', name: 'Warp', icon: '/icons/agents/warp.svg' },
   { id: 'goose', name: 'Goose', icon: '/icons/agents/goose.svg' },
 ];
 
