@@ -5,11 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   codingAgents,
-  agentsByCategory,
-  categoryLabels,
   optOutOptions,
   type OptOutReason,
-  type AgentCategory,
 } from '@/lib/coding-agents';
 
 declare global {
@@ -32,6 +29,7 @@ interface FormData {
   name: string;
   email: string;
   role: string;
+  otherAgent: string;
 }
 
 interface FormErrors {
@@ -39,16 +37,88 @@ interface FormErrors {
   email?: string;
   role?: string;
   agents?: string;
+  otherAgent?: string;
+}
+
+const STORAGE_KEY = 'rae_contact_form_draft';
+
+interface PersistedState {
+  formData: FormData;
+  selectedAgents: string[];
+  otherSelected: boolean;
+  optOut: OptOutReason | null;
+  savedAt: number;
+}
+
+// Expire drafts after 7 days
+const DRAFT_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Load persisted state from localStorage
+function loadPersistedState(): Partial<PersistedState> | null {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return null;
+
+    const parsed: PersistedState = JSON.parse(stored);
+
+    // Check if expired
+    if (Date.now() - parsed.savedAt > DRAFT_EXPIRY_MS) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+// Save state to localStorage
+function savePersistedState(state: Omit<PersistedState, 'savedAt'>) {
+  try {
+    const toSave: PersistedState = {
+      ...state,
+      savedAt: Date.now(),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+// Clear persisted state
+function clearPersistedState() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
-  const [formData, setFormData] = React.useState<FormData>({
-    name: '',
-    email: '',
-    role: '',
-  });
-  const [selectedAgents, setSelectedAgents] = React.useState<Set<string>>(new Set());
-  const [optOut, setOptOut] = React.useState<OptOutReason | null>(null);
+  // Initialize state from localStorage if available
+  const initialState = React.useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    return loadPersistedState();
+  }, []);
+
+  const [formData, setFormData] = React.useState<FormData>(
+    initialState?.formData ?? {
+      name: '',
+      email: '',
+      role: '',
+      otherAgent: '',
+    }
+  );
+  const [selectedAgents, setSelectedAgents] = React.useState<Set<string>>(
+    new Set(initialState?.selectedAgents ?? [])
+  );
+  const [otherSelected, setOtherSelected] = React.useState(
+    initialState?.otherSelected ?? false
+  );
+  const [optOut, setOptOut] = React.useState<OptOutReason | null>(
+    initialState?.optOut ?? null
+  );
   const [errors, setErrors] = React.useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [submitSuccess, setSubmitSuccess] = React.useState(false);
@@ -56,12 +126,34 @@ export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
   const formStartedRef = React.useRef(false);
   const startTimeRef = React.useRef<number>(Date.now());
 
+  // If we restored state, mark form as started
+  React.useEffect(() => {
+    if (initialState) {
+      formStartedRef.current = true;
+      window.posthog?.capture('contact_form_restored', { source });
+    }
+  }, []);
+
+  // Persist state on changes
+  React.useEffect(() => {
+    // Only persist if form has been interacted with
+    if (!formStartedRef.current) return;
+
+    savePersistedState({
+      formData,
+      selectedAgents: Array.from(selectedAgents),
+      otherSelected,
+      optOut,
+    });
+  }, [formData, selectedAgents, otherSelected, optOut]);
+
   // Track form opened
   React.useEffect(() => {
     startTimeRef.current = Date.now();
     window.posthog?.capture('contact_form_opened', {
       source,
       device: window.innerWidth >= 768 ? 'desktop' : 'mobile',
+      restored: !!initialState,
     });
 
     // Track abandonment on unmount
@@ -70,7 +162,7 @@ export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
         const filledFields = Object.entries(formData)
           .filter(([_, v]) => v.trim().length > 0)
           .map(([k]) => k);
-        if (selectedAgents.size > 0) filledFields.push('agents');
+        if (selectedAgents.size > 0 || otherSelected) filledFields.push('agents');
 
         window.posthog?.capture('contact_form_abandoned', {
           source,
@@ -138,6 +230,27 @@ export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
     }
   };
 
+  const toggleOther = () => {
+    trackFirstInteraction('agents');
+
+    // If opted out, clicking Other clears opt-out and selects Other
+    if (optOut) {
+      setOptOut(null);
+      setOtherSelected(true);
+    } else {
+      setOtherSelected((prev) => !prev);
+      if (otherSelected) {
+        // Clear the text when deselecting Other
+        setFormData((prev) => ({ ...prev, otherAgent: '' }));
+        setErrors((prev) => ({ ...prev, otherAgent: undefined }));
+      }
+    }
+
+    if (errors.agents) {
+      setErrors((prev) => ({ ...prev, agents: undefined }));
+    }
+  };
+
   const handleOptOut = (reason: OptOutReason) => {
     trackFirstInteraction('agents');
 
@@ -146,6 +259,7 @@ export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
       setOptOut(null);
       window.posthog?.capture('contact_form_agents_selected', {
         agents: Array.from(selectedAgents),
+        other: otherSelected ? formData.otherAgent : null,
         opted_out: false,
       });
     } else {
@@ -179,8 +293,15 @@ export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
       newErrors.role = 'Role is required';
     }
 
-    if (!optOut && selectedAgents.size === 0) {
+    // Agent selection validation
+    const hasAgentSelection = selectedAgents.size > 0 || otherSelected;
+    if (!optOut && !hasAgentSelection) {
       newErrors.agents = 'Select at least one option';
+    }
+
+    // Other text is required when Other is selected and not opted out
+    if (otherSelected && !optOut && formData.otherAgent.trim().length < 2) {
+      newErrors.otherAgent = 'Please specify which agent(s)';
     }
 
     setErrors(newErrors);
@@ -204,11 +325,16 @@ export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
     setIsSubmitting(true);
     setSubmitError(null);
 
+    const agents = optOut ? [] : Array.from(selectedAgents);
+    if (!optOut && otherSelected && formData.otherAgent.trim()) {
+      agents.push(`other: ${formData.otherAgent.trim()}`);
+    }
+
     const payload = {
       name: formData.name.trim(),
       email: formData.email.trim(),
       role: formData.role.trim(),
-      agents: optOut ? [] : Array.from(selectedAgents),
+      agents,
       optedOut: !!optOut,
       optOutReason: optOut,
       source,
@@ -226,6 +352,7 @@ export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
       }
 
       setSubmitSuccess(true);
+      clearPersistedState();
       window.posthog?.capture('contact_form_submitted', {
         agents: payload.agents,
         opted_out: payload.optedOut,
@@ -262,6 +389,9 @@ export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
       </div>
     );
   }
+
+  const isOtherInactive = !!optOut;
+  const isOtherSelectedButInactive = otherSelected && isOtherInactive;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6" noValidate>
@@ -321,51 +451,91 @@ export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
       <div className="space-y-3">
         <Label>Which coding agent(s) do you (or your team) use?</Label>
 
-        {/* Agent chips by category */}
-        {(Object.keys(agentsByCategory) as AgentCategory[]).map((category) => (
-          <div key={category} className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              {categoryLabels[category]}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {agentsByCategory[category].map((agent) => {
-                const isSelected = selectedAgents.has(agent.id);
-                const isInactive = !!optOut;
-                const isSelectedButInactive = isSelected && isInactive;
+        {/* All agent chips in one flat grid */}
+        <div className="flex flex-wrap gap-2">
+          {codingAgents.map((agent) => {
+            const isSelected = selectedAgents.has(agent.id);
+            const isInactive = !!optOut;
+            const isSelectedButInactive = isSelected && isInactive;
 
-                return (
-                  <button
-                    key={agent.id}
-                    type="button"
-                    onClick={() => toggleAgent(agent.id)}
-                    className={cn(
-                      'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all border',
-                      // Active selected state
-                      isSelected && !isInactive &&
-                        'bg-primary text-primary-foreground border-primary',
-                      // Selected but inactive (opt-out active) - show preserved selection
-                      isSelectedButInactive &&
-                        'bg-primary/20 text-primary border-primary/50 border-dashed opacity-60',
-                      // Inactive unselected
-                      isInactive && !isSelected &&
-                        'opacity-40 bg-background border-border',
-                      // Normal unselected
-                      !isSelected && !isInactive &&
-                        'bg-background hover:bg-muted border-border hover:border-primary/50'
-                    )}
-                  >
-                    <img
-                      src={agent.icon}
-                      alt=""
-                      className="w-4 h-4 dark:invert"
-                    />
-                    {agent.name}
-                  </button>
-                );
-              })}
-            </div>
+            return (
+              <button
+                key={agent.id}
+                type="button"
+                onClick={() => toggleAgent(agent.id)}
+                className={cn(
+                  'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all border',
+                  // Active selected state
+                  isSelected && !isInactive &&
+                    'bg-primary text-primary-foreground border-primary',
+                  // Selected but inactive (opt-out active) - show preserved selection
+                  isSelectedButInactive &&
+                    'bg-primary/20 text-primary border-primary/50 border-dashed opacity-60',
+                  // Inactive unselected
+                  isInactive && !isSelected &&
+                    'opacity-40 bg-background border-border',
+                  // Normal unselected
+                  !isSelected && !isInactive &&
+                    'bg-background hover:bg-muted border-border hover:border-primary/50'
+                )}
+              >
+                <img
+                  src={agent.icon}
+                  alt=""
+                  className="w-4 h-4 dark:invert"
+                />
+                {agent.name}
+              </button>
+            );
+          })}
+
+          {/* Other pill */}
+          <button
+            type="button"
+            onClick={toggleOther}
+            className={cn(
+              'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all border',
+              // Active selected state
+              otherSelected && !isOtherInactive &&
+                'bg-primary text-primary-foreground border-primary',
+              // Selected but inactive (opt-out active) - show preserved selection
+              isOtherSelectedButInactive &&
+                'bg-primary/20 text-primary border-primary/50 border-dashed opacity-60',
+              // Inactive unselected
+              isOtherInactive && !otherSelected &&
+                'opacity-40 bg-background border-border',
+              // Normal unselected
+              !otherSelected && !isOtherInactive &&
+                'bg-background hover:bg-muted border-border hover:border-primary/50'
+            )}
+          >
+            <img
+              src="/icons/agents/other.svg"
+              alt=""
+              className="w-4 h-4 dark:invert"
+            />
+            Other
+          </button>
+        </div>
+
+        {/* Other text input - shown when Other is selected */}
+        {otherSelected && (
+          <div className={cn('space-y-2', isOtherInactive && 'opacity-50')}>
+            <Input
+              id="otherAgent"
+              name="otherAgent"
+              value={formData.otherAgent}
+              onChange={handleInputChange}
+              onFocus={() => handleInputFocus('otherAgent')}
+              placeholder="Which one(s)?"
+              aria-invalid={!!errors.otherAgent}
+              disabled={isOtherInactive}
+            />
+            {errors.otherAgent && (
+              <p className="text-sm text-destructive">{errors.otherAgent}</p>
+            )}
           </div>
-        ))}
+        )}
 
         {/* Opt-out options */}
         <div className="pt-2 border-t border-border">
