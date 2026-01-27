@@ -101,25 +101,37 @@ export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
   };
 
   const toggleAgent = (agentId: string) => {
-    if (optOut) return; // Agents disabled when opted out
-
     trackFirstInteraction('agents');
-    setSelectedAgents((prev) => {
-      const next = new Set(prev);
-      if (next.has(agentId)) {
-        next.delete(agentId);
-      } else {
+
+    // If opted out, clicking a tool clears opt-out and adds the tool
+    if (optOut) {
+      setOptOut(null);
+      setSelectedAgents((prev) => {
+        const next = new Set(prev);
         next.add(agentId);
-      }
-
-      // Debounced tracking
-      window.posthog?.capture('contact_form_agents_selected', {
-        agents: Array.from(next),
-        opted_out: false,
+        window.posthog?.capture('contact_form_agents_selected', {
+          agents: Array.from(next),
+          opted_out: false,
+        });
+        return next;
       });
+    } else {
+      setSelectedAgents((prev) => {
+        const next = new Set(prev);
+        if (next.has(agentId)) {
+          next.delete(agentId);
+        } else {
+          next.add(agentId);
+        }
 
-      return next;
-    });
+        window.posthog?.capture('contact_form_agents_selected', {
+          agents: Array.from(next),
+          opted_out: false,
+        });
+
+        return next;
+      });
+    }
 
     if (errors.agents) {
       setErrors((prev) => ({ ...prev, agents: undefined }));
@@ -252,7 +264,7 @@ export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" noValidate>
       {/* Name */}
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
@@ -318,30 +330,34 @@ export function ContactForm({ source, onSuccess, onClose }: ContactFormProps) {
             <div className="flex flex-wrap gap-2">
               {agentsByCategory[category].map((agent) => {
                 const isSelected = selectedAgents.has(agent.id);
-                const isDisabled = !!optOut;
+                const isInactive = !!optOut;
+                const isSelectedButInactive = isSelected && isInactive;
 
                 return (
                   <button
                     key={agent.id}
                     type="button"
                     onClick={() => toggleAgent(agent.id)}
-                    disabled={isDisabled}
                     className={cn(
                       'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all border',
-                      isDisabled && 'opacity-40 cursor-not-allowed',
-                      isSelected && !isDisabled
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-background hover:bg-muted border-border',
-                      !isDisabled && !isSelected && 'hover:border-primary/50'
+                      // Active selected state
+                      isSelected && !isInactive &&
+                        'bg-primary text-primary-foreground border-primary',
+                      // Selected but inactive (opt-out active) - show preserved selection
+                      isSelectedButInactive &&
+                        'bg-primary/20 text-primary border-primary/50 border-dashed opacity-60',
+                      // Inactive unselected
+                      isInactive && !isSelected &&
+                        'opacity-40 bg-background border-border',
+                      // Normal unselected
+                      !isSelected && !isInactive &&
+                        'bg-background hover:bg-muted border-border hover:border-primary/50'
                     )}
                   >
                     <img
                       src={agent.icon}
                       alt=""
-                      className={cn(
-                        'w-4 h-4',
-                        isSelected && !isDisabled ? 'brightness-0 invert' : ''
-                      )}
+                      className="w-4 h-4 dark:invert"
                     />
                     {agent.name}
                   </button>
