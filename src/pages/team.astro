@@ -1,0 +1,134 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+
+const partners = [
+  {
+    name: 'Tripp Wickersham',
+    role: 'Partner',
+    image: 'https://framerusercontent.com/images/dgmblQAhhrsijiMyw0E7WK1Q.png?scale-down-to=512',
+    headline: 'Built regulated AI for doctors and rental owners. Now building the tooling for mature tech teams.',
+    bullets: [
+      '10+ years leading AI/ML, Product, and Engineering in bio & health tech',
+      'Improved margins 500%+ with AI at tech-enabled services healthtech startup',
+      'Scaled product and tech teams up (and down) from several to hundreds',
+    ],
+    linkedin: 'https://www.linkedin.com/in/trippwickersham/',
+  },
+  {
+    name: 'Kyle Smith',
+    role: 'Partner',
+    image: 'https://framerusercontent.com/images/4xUonWxLy0mvwg20S01vcfAfeZg.png?scale-down-to=512',
+    headline: 'Led tech reliability for $8B in combined ARR.<br />Now making AI agents reliable.',
+    bullets: [
+      '15+ years leading technology reliability at Cisco, Indeed, and Twilio',
+      'Took 17 products from 0 to 1 across multiple tech stacks',
+      'Built infrastructure that scales reliably to millions of users',
+    ],
+    linkedin: 'https://www.linkedin.com/in/knksmith57/',
+  },
+];
+---
+
+<BaseLayout
+  title="Team"
+  description="Meet the operators behind RAE. We've spent 15+ years in enterprise tech and the C-suite. Now we help organizations trust teams of coding agents at scale."
+>
+  <Nav />
+
+  <main class="pt-24 pb-16">
+    <!-- Hero -->
+    <section class="max-w-4xl mx-auto px-6 pt-16 pb-8 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-6">
+        Operators, not consultants
+      </h1>
+      <p class="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+        We've been in code and in the C-suite as product and technology operators for 15 years.
+        We didn't advise companies on building products and orgs; we built them ourselves.
+      </p>
+    </section>
+
+    <!-- The Story -->
+    <section class="max-w-3xl mx-auto px-6 py-8">
+      <div class="bg-card border border-border rounded-lg p-8">
+        <h2 class="text-lg font-semibold text-foreground mb-4">Why we started RAE</h2>
+        <p class="text-muted-foreground leading-relaxed mb-4">
+          We've spent the last few years building <a href="https://hominy.ai" class="text-primary hover:underline">Hominy</a>,
+          a prop tech startup. Along the way, we built out a specific toolchain to run teams of coding agents in parallel because we had to.
+          Now we run the entire business on AI.
+        </p>
+        <p class="text-muted-foreground leading-relaxed">
+          RAE helps other organizations do the same: trust teams of coding agents to develop over long horizons.
+        </p>
+      </div>
+    </section>
+
+    <!-- Partners Grid -->
+    <section class="max-w-5xl mx-auto px-6 py-12">
+      <p class="text-lg text-muted-foreground text-center max-w-3xl mx-auto mb-12 leading-relaxed">
+        Our team of partners, advisors, and builders brings 75+ combined years of IC and management leadership at the best technology startups and enterprises in the world.
+      </p>
+      <div class="grid md:grid-cols-2 gap-12">
+        {partners.map((partner) => (
+          <div class="flex flex-col">
+            <!-- Photo + Name -->
+            <div class="flex items-start gap-6 mb-6">
+              <img
+                src={partner.image}
+                alt={partner.name}
+                class="w-28 h-28 rounded-full object-cover border-2 border-border"
+              />
+              <div>
+                <h3 class="text-2xl font-bold text-foreground">{partner.name}</h3>
+                <p class="text-primary font-medium">{partner.role}</p>
+                <a
+                  href={partner.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-primary mt-2"
+                >
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                  </svg>
+                  LinkedIn
+                </a>
+              </div>
+            </div>
+
+            <!-- Headline -->
+            <p class="text-lg text-foreground font-medium mb-4 leading-snug" set:html={partner.headline} />
+
+            <!-- Bullets -->
+            <ul class="space-y-2 mb-6">
+              {partner.bullets.map((bullet) => (
+                <li class="flex items-baseline gap-2 text-muted-foreground">
+                  <span class="text-primary">•</span>
+                  <span>{bullet}</span>
+                </li>
+              ))}
+            </ul>
+
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="max-w-4xl mx-auto px-6 py-16 text-center">
+      <h2 class="text-2xl font-bold text-foreground mb-4">Not sure where to start?</h2>
+      <p class="text-muted-foreground mb-8 max-w-xl mx-auto">
+        We help engineering teams trust AI coding agents at scale.<br />
+        We can help you catch up.
+      </p>
+      <a
+        href="mailto:hello@rae.partners"
+        class="inline-flex items-center justify-center px-8 py-4 text-lg font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+      >
+        Get in touch
+      </a>
+    </section>
+  </main>
+
+  <Footer />
+</BaseLayout>
