@@ -13,7 +13,9 @@
 Generate Open Graph image for rae marketing site.
 
 Creates a 1200x630 PNG suitable for social media link previews,
-using the rae sunrise design and brand colors.
+using the official rae-logo.svg and brand colors.
+
+Requires: rsvg-convert (brew install librsvg)
 
 Usage:
     ./scripts/generate-og-image.py
@@ -29,7 +31,8 @@ References:
     - uv scripts: https://docs.astral.sh/uv/guides/scripts/
 """
 
-import math
+import subprocess
+import tempfile
 from pathlib import Path
 
 import typer
@@ -37,87 +40,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 # Brand colors (from global.css solarpunk theme)
 BACKGROUND = (253, 251, 247)  # Warm white #fdfbf7
-PRIMARY = (196, 147, 61)  # Solar gold #c4933d
+PRIMARY_HEX = "#c4933d"  # Solar gold
 FOREGROUND = (41, 37, 36)  # Deep brown #292524
-
-
-def draw_sun_logo(
-    draw: ImageDraw.ImageDraw,
-    center_x: int,
-    center_y: int,
-    scale: float = 1.0,
-) -> None:
-    """Draw the rae sunrise logo."""
-    sun_radius = int(55 * scale)
-    horizon_y = center_y + int(10 * scale)
-
-    # Draw sun arc (top 40% of circle above horizon)
-    sun_bbox = [
-        center_x - sun_radius,
-        horizon_y - sun_radius,
-        center_x + sun_radius,
-        horizon_y + sun_radius,
-    ]
-    # Draw arc from 200 to 340 degrees (the visible part above horizon)
-    draw.arc(sun_bbox, start=200, end=340, fill=PRIMARY, width=int(4 * scale))
-
-    # Draw horizon line
-    horizon_half_width = int(117 * scale)
-    draw.line(
-        [
-            (center_x - horizon_half_width, horizon_y),
-            (center_x + horizon_half_width, horizon_y),
-        ],
-        fill=PRIMARY,
-        width=int(2 * scale),
-    )
-
-    # Draw rays
-    ray_data = [
-        (-73.5, 0.65),  # angle, length multiplier
-        (-58.8, 0.85),
-        (-44.1, 0.70),
-        (-29.4, 0.95),
-        (-14.7, 0.75),
-        (0, 1.0),
-        (14.7, 0.70),
-        (29.4, 0.95),
-        (44.1, 0.65),
-        (58.8, 0.90),
-        (73.5, 0.65),
-    ]
-
-    ray_start_radius = int(60 * scale)
-    ray_base_length = int(55 * scale)
-
-    for angle_deg, length_mult in ray_data:
-        angle_rad = math.radians(angle_deg - 90)  # -90 to make 0 point up
-        start_x = center_x + int(ray_start_radius * math.cos(angle_rad))
-        start_y = horizon_y + int(ray_start_radius * math.sin(angle_rad))
-
-        ray_length = int(ray_base_length * length_mult)
-        end_x = center_x + int((ray_start_radius + ray_length) * math.cos(angle_rad))
-        end_y = horizon_y + int((ray_start_radius + ray_length) * math.sin(angle_rad))
-
-        draw.line(
-            [(start_x, start_y), (end_x, end_y)],
-            fill=PRIMARY,
-            width=int(2.5 * scale),
-        )
-
-        # Add circuit node (small circle) on some rays
-        if abs(angle_deg) in [73.5, 44.1, 29.4, 14.7, 58.8]:
-            node_radius = int(4 * scale)
-            draw.ellipse(
-                [
-                    end_x - node_radius,
-                    end_y - node_radius,
-                    end_x + node_radius,
-                    end_y + node_radius,
-                ],
-                outline=PRIMARY,
-                width=int(2 * scale),
-            )
 
 
 def main(
@@ -125,19 +49,78 @@ def main(
     width: int = 1200,
     height: int = 630,
 ) -> None:
-    """Generate the OG image."""
+    """Generate the OG image using the official SVG logo."""
     # Create base image with warm background
     img = Image.new("RGB", (width, height), BACKGROUND)
-    draw = ImageDraw.Draw(img)
 
-    # Draw the sun logo centered, in upper portion
-    logo_center_x = width // 2
-    logo_center_y = int(height * 0.38)
-    logo_scale = 2.8  # Scale up for OG image
+    # Load the official SVG logo
+    svg_path = Path("public/images/rae-logo.svg")
+    if not svg_path.exists():
+        typer.echo(f"Error: {svg_path} not found", err=True)
+        raise typer.Exit(1)
 
-    draw_sun_logo(draw, logo_center_x, logo_center_y, logo_scale)
+    svg_content = svg_path.read_text()
+
+    # Replace currentColor with brand gold, remove white background rect
+    svg_modified = svg_content.replace("currentColor", PRIMARY_HEX)
+    svg_modified = svg_modified.replace(
+        '<rect width="400" height="280" fill="white" rx="20" ry="20"/>',
+        "",
+    )
+
+    # Scale logo to fit nicely (about 55% of height)
+    logo_height = int(height * 0.55)
+    # Original SVG is 400x280, maintain aspect ratio
+    logo_width = int(logo_height * (400 / 280))
+
+    # Write modified SVG to temp file and convert with rsvg-convert
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".svg", delete=False
+    ) as svg_file:
+        svg_file.write(svg_modified)
+        svg_temp_path = svg_file.name
+
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as png_file:
+        png_temp_path = png_file.name
+
+    try:
+        # Use rsvg-convert (from librsvg) to render SVG to PNG
+        result = subprocess.run(
+            [
+                "rsvg-convert",
+                "-w",
+                str(logo_width),
+                "-h",
+                str(logo_height),
+                "-o",
+                png_temp_path,
+                svg_temp_path,
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            typer.echo(f"Error running rsvg-convert: {result.stderr}", err=True)
+            typer.echo("Install with: brew install librsvg", err=True)
+            raise typer.Exit(1)
+
+        # Open rendered logo
+        logo = Image.open(png_temp_path).convert("RGBA")
+
+        # Center horizontally, position in upper portion
+        x = (width - logo_width) // 2
+        y = int(height * 0.08)
+
+        img.paste(logo, (x, y), logo)
+
+    finally:
+        # Clean up temp files
+        Path(svg_temp_path).unlink(missing_ok=True)
+        Path(png_temp_path).unlink(missing_ok=True)
 
     # Add tagline text at bottom
+    draw = ImageDraw.Draw(img)
     tagline = "Responsible. Autonomous. Engineering."
 
     # Try system fonts with fallback
