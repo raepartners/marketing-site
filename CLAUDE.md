@@ -28,6 +28,7 @@ Find active worktrees: `cd $RAE_MGMT_PATH && git worktree list`
 - **Styling:** Tailwind CSS 4 + shadcn/ui
 - **Content:** MDX + Content Collections (Zod schemas)
 - **Testing:** Playwright + axe-core
+- **Analytics:** PostHog (product analytics)
 - **Package Manager:** pnpm
 
 ## Commands
@@ -180,3 +181,70 @@ kill $PREVIEW_PID  # Kill only YOUR server
 - Stay on Astro v5.15.9+ for security patches
 - Do not use Auto Minify in Cloudflare (causes hydration issues)
 - Blog URLs are dateless (`/blog/slug`) — dates are in metadata only
+
+## Analytics (PostHog)
+
+PostHog provides product analytics with AI-friendly data access via MCP and APIs.
+
+### Prerequisites
+
+- **1Password CLI** (`op`) installed and signed in
+- Access to **Causadix** vault (for client-side tracking — just works)
+- Personal PostHog API key (for MCP server — see setup below)
+
+### Setup (1Password)
+
+Client-side tracking secrets are managed via 1Password and injected automatically on session start.
+
+1. Create a PostHog account at https://us.posthog.com
+2. Create a project and copy the project API key
+3. Add the key to 1Password:
+   - Create an item in the **Causadix** vault (or use existing)
+   - Add field: `PostHog Project API Key`
+4. Update `.op.env` with the correct item ID:
+   ```bash
+   # Find item ID
+   op item list --vault Causadix --format json | jq '.[] | {title, id}'
+   ```
+5. For Cloudflare Pages, add `PUBLIC_POSTHOG_KEY` in the dashboard
+
+### How It Works
+
+- `.op.env` — 1Password secret references (committed, no actual secrets)
+- `.claude/hooks/load-op-env.py` — SessionStart hook resolves secrets
+- Secrets are injected into the session environment automatically
+
+### Features
+
+- **Pageview tracking:** Automatic on every page load
+- **Page leave tracking:** Captures time on page
+- **User identification:** `identified_only` mode (privacy-respecting)
+- **Custom events:** Use `posthog.capture('event_name', { properties })` in client code
+
+### AI/Data Access (MCP Server)
+
+The PostHog MCP server lets Claude query analytics directly. Each developer needs their own personal API key.
+
+**First-time setup:**
+
+1. Create a PostHog personal API key:
+   - Go to https://us.posthog.com/settings/user-api-keys
+   - Create key with scopes: `project:read`, `insight:read`
+
+2. Add to your shell profile (`~/.zshrc` or `~/.bashrc`):
+   ```bash
+   export POSTHOG_API_KEY="phx_YOUR_KEY_HERE"
+   ```
+
+3. Restart your terminal and Claude Code
+
+The MCP server script checks for this env var first. If not set, it exits gracefully (no errors for devs without setup).
+
+**Other data access:**
+- **HogQL:** SQL-like queries at https://us.posthog.com/sql
+- **API:** Full REST API + batch exports to BigQuery/Snowflake
+- **Python SDK:** `pip install posthog`
+
+### Dashboard
+
+View analytics at https://us.posthog.com — free tier includes 1M events/month
